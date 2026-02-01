@@ -6,7 +6,7 @@
     const [deals, setDeals] = useState([]);
 
     useEffect(() => {
-      fetch("http://localhost:5000/api/deals")
+      fetch("http://127.0.0.1:5000/api/deals")
         .then(res => res.json())
         .then(setDeals);
     }, []);
