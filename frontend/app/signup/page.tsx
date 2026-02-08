@@ -1,9 +1,13 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Signup() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+  const safeRedirect = redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/";
+  const loginUrl = `/login?redirect=${encodeURIComponent(safeRedirect)}`;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +34,7 @@ export default function Signup() {
       return;
     }
 
-    router.push("/login");
+    router.push(loginUrl);
   };
 
   return (
@@ -83,7 +87,7 @@ export default function Signup() {
         <p className="mt-4 text-sm text-gray-400 text-center">
           Already have an account?{" "}
           <span
-            onClick={() => router.push("/login")}
+            onClick={() => router.push(loginUrl)}
             className="text-indigo-400 cursor-pointer"
           >
             Login

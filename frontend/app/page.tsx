@@ -35,7 +35,7 @@ export default function Home() {
           className="flex flex-wrap items-center gap-4 mt-8"
         >
           <Link
-            href="/login"
+            href="/login?redirect=/"
             className="px-6 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
           >
             Login

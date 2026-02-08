@@ -1,25 +1,13 @@
-import express from 'express';
-import { protect } from '../middleware/authMiddleware.js';
-import { claimDeal, getMyClaims } from '../controllers/claimController.js';
+import express from "express";
+import { claimDeal, myClaims } from "../controllers/claimController.js";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
 
-router.post('/:dealId', protect, claimDeal);
-router.get('/my-dashboard', protect, getMyClaims);
+router.post("/:dealId", protect, claimDeal);
 
-// contr fxn
-export const claimDeal = async (req, res) => {
-  const deal = await Deal.findById(req.params.dealId);
-  
- 
-  if (deal.locked && !req.user.isVerified) {
-    return res.status(403).json({ 
-      message: 'This premium deal requires startup verification.' 
-    });
-  }
-  
- 
-};
+
+router.get("/", protect, myClaims);
 
 export default router;

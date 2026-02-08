@@ -1,16 +1,28 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Header() {
   const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
 
-  
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const syncUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    syncUser();
+    window.addEventListener("auth-change", syncUser);
+    return () => window.removeEventListener("auth-change", syncUser);
   }, []);
 
   const logout = () => {
@@ -34,8 +46,9 @@ export default function Header() {
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <span className="text-gray-400">
-              Hi, <span className="text-white">{user.name}</span>
+            <span className="text-zinc-400 text-sm sm:text-base" aria-label="Logged in as">
+              <span className="text-zinc-500 mr-1">Welcome,</span>
+              <span className="text-white font-semibold">{user.name || user.email || "User"}</span>
             </span>
 
             <Link
@@ -54,10 +67,10 @@ export default function Header() {
           </>
         ) : (
           <>
-            <Link href="/login" className="hover:text-indigo-400">
+            <Link href={`/login?redirect=${encodeURIComponent(pathname || "/")}`} className="hover:text-indigo-400">
               Login
             </Link>
-            <Link href="/signup" className="hover:text-indigo-400">
+            <Link href={`/signup?redirect=${encodeURIComponent(pathname || "/")}`} className="hover:text-indigo-400">
               Sign Up
             </Link>
           </>

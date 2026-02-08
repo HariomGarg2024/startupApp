@@ -1,48 +1,44 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-export default function DealDetails() {
-  const { id } = useParams();
-  const [deal, setDeal] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`http://localhost:5000/api/deals/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setDeal(data);
-        setLoading(false);
-      });
-  }, [id]);
-
-  if (loading) {
-    return <p className="p-10 text-gray-400">Loading deal...</p>;
+const handleClaim = async (deal: any) => {
+  
+  if (deal.locked) {
+    alert("Authentication / verification required");
+    return;
   }
 
-  if (!deal) {
-    return <p className="p-10 text-red-400">Deal not found</p>;
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Please login to claim this deal");
+    return;
   }
 
-  return (
-    <div className="p-10 max-w-3xl">
-      <h1 className="text-4xl font-bold">{deal.title}</h1>
+  try {
+    const res = await fetch(
+      `http://127.0.0.1:5000/api/claims/${deal._id}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
 
-      <p className="mt-4 text-gray-400">
-        Partner: {deal.partner}
-      </p>
+    const text = await res.text();
 
-      <p className="mt-6">{deal.description}</p>
+    if (!res.ok) {
+      let message = "Failed to claim deal";
+      try {
+        const data = JSON.parse(text);
+        if (data.message) message = data.message;
+      } catch {
+        if (text) message = text;
+      }
+      throw new Error(message);
+    }
 
-      <p className="mt-4 text-sm text-gray-400">
-        Eligibility: {deal.eligibility}
-      </p>
-
-      {deal.locked && (
-        <p className="mt-6 text-red-400">
-          🔒 Verification required to claim this deal
-        </p>
-      )}
-    </div>
-  );
-}
+    alert("You have successfully claimed this deal.");
+  } catch (err: any) {
+    console.error("Claim error:", err.message);
+    alert(err.message);
+  }
+};
