@@ -1,20 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { fetchDeals, API } from "@/lib/api";
 
 export default function Deals() {
   const [deals, setDeals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/deals")
-      .then((res) => res.json())
+    setLoading(true);
+    setFetchError(null);
+    fetchDeals()
       .then(setDeals)
-      .catch((err) =>
-        console.error("Error fetching deals:", err)
-      );
+      .catch((err) => {
+        console.error("Error fetching deals:", err);
+        setFetchError(err?.message || "Failed to load deals. Is the backend running?");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -76,8 +84,39 @@ export default function Deals() {
     }
   };
 
+  const categories = Array.from(
+    new Set(
+      deals
+        .map((deal) => deal.category)
+        .filter((category) => typeof category === "string" && category.trim() !== "")
+    )
+  ) as string[];
+
+  const filteredDeals = deals.filter((deal) => {
+    const matchesCategory =
+      selectedCategory === "All" || deal.category === selectedCategory;
+
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      term === "" ||
+      (typeof deal.title === "string" &&
+        deal.title.toLowerCase().includes(term)) ||
+      (typeof deal.description === "string" &&
+        deal.description.toLowerCase().includes(term));
+
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <div className="p-10">
+      {fetchError && (
+        <div
+          className="mb-6 rounded-lg bg-amber-900/50 border border-amber-600 text-amber-200 px-4 py-3"
+          role="alert"
+        >
+          {fetchError}
+        </div>
+      )}
       {successMessage && (
         <div
           className="mb-6 rounded-lg bg-green-900/50 border border-green-600 text-green-200 px-4 py-3"
@@ -94,13 +133,57 @@ export default function Deals() {
           {errorMessage}
         </div>
       )}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="w-full md:max-w-sm">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search deals..."
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory("All")}
+            className={`px-3 py-1 rounded-full text-xs font-medium border ${
+              selectedCategory === "All"
+                ? "bg-blue-600 border-blue-500 text-white"
+                : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
+            }`}
+          >
+            All
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setSelectedCategory(category)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                selectedCategory === category
+                  ? "bg-blue-600 border-blue-500 text-white"
+                  : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {deals.length === 0 ? (
+      {loading ? (
+        <p className="text-gray-400 col-span-full text-center">Loading deals...</p>
+      ) : deals.length === 0 ? (
         <p className="text-gray-400 col-span-full text-center">
           No deals available right now
         </p>
+      ) : filteredDeals.length === 0 ? (
+        <p className="text-gray-400 col-span-full text-center">
+          No deals match your search or selected category
+        </p>
       ) : (
-        deals.map((deal) => (
+        filteredDeals.map((deal) => (
           <motion.div
             key={deal._id}
             whileHover={{ scale: 1.02 }}

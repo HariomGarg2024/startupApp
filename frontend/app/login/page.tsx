@@ -35,7 +35,7 @@ export default function Login() {
     const safeRedirect = redirectTo.startsWith("/") && !redirectTo.startsWith("//")
       ? redirectTo
       : "/";
-    // Full page redirect so the navbar mounts fresh and reads user from localStorage
+    
     window.location.href = safeRedirect;
   };
 

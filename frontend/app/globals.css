@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020617;
+  --background-alt: #020617;
+  --foreground: #e2e8f0;
+  --accent: #22d3ee;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --accent-strong: #0ea5e9;
+  --muted: #64748b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.18), transparent 55%),
+    radial-gradient(circle at top right, rgba(236, 72, 153, 0.16), transparent 55%),
+    var(--background-alt);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1600 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.1' numOctaves='2' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+.glass-panel {
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 60%),
+    rgba(15, 23, 42, 0.84);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow:
+    0 22px 45px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(22px);
+}
+
+.glow-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-button::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background:
+    conic-gradient(
+      from 140deg,
+      rgba(34, 211, 238, 0.2),
+      rgba(59, 130, 246, 0.2),
+      rgba(236, 72, 153, 0.16),
+      transparent 60%
+    );
+  opacity: 0;
+  transition: opacity 250ms ease-out, transform 250ms ease-out;
+  transform: translate3d(-10%, 18%, 0) rotate(6deg);
+}
+
+.glow-button:hover::before {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+}
+
+.glow-button > span {
+  position: relative;
+  z-index: 1;
 }
